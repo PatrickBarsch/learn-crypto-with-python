@@ -1,4 +1,5 @@
 import binascii
+import string
 
 
 def hex_to_base64(input_hex: str) -> bytes:
@@ -19,9 +20,19 @@ def fixed_xor(hex_1: str, hex_2: str) -> hex:
     return hex(result)
 
 
+def single_xor(hex_1: str):
+    raw_byte_1 = int(hex_1, 16)
+
+    for letter in string.ascii_lowercase:
+
+        decoded = raw_byte_1 ^ ord(letter)
+        print(ord(letter))
+        print(decoded)
+
+
 if __name__ == '__main__':
     abc = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
     print(hex_to_base64(abc))
     print(fixed_xor('1c0111001f010100061a024b53535009181c', '686974207468652062756c6c277320657965'))
 
-
+single_xor('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736')
