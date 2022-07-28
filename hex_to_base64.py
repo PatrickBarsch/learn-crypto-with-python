@@ -1,6 +1,6 @@
 import base64
 import string
-import numpy as np
+import math
 
 
 def hex_to_bytes(input_hex: str) -> bytes:
@@ -29,7 +29,7 @@ def euclidian_distance(lttr_frqncy: list) -> float:
         standard_frequency_of_letter = LETTER_FREQUENCY_STANDARD[string.ascii_uppercase[letter]]
         sum_distance += (standard_frequency_of_letter - lttr_frqncy[letter]) ** 2 / standard_frequency_of_letter
 
-    return np.sqrt(sum_distance)
+    return math.sqrt(sum_distance)
 
 
 def calculate_letter_frequency(decoded_bytes: bytes) -> list:
