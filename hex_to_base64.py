@@ -1,4 +1,6 @@
 import base64
+import string
+import math
 import enchant
 
 
@@ -18,8 +20,44 @@ def xor_bytes_to_char(our_bytes: bytes, other: chr) -> bytearray:
     return bytearray([(one_byte ^ ord(other)) for one_byte in our_bytes])
 
 
+def create_list_zeros(length_list: int) -> list:
+    return [0] * length_list
+
+
+def euclidian_distance(lttr_frqncy: list) -> float:
+    sum_distance = 0
+    for letter in range(len(lttr_frqncy)):
+        standard_frequency_of_letter = LETTER_FREQUENCY_STANDARD[string.ascii_uppercase[letter]]
+        sum_distance += (standard_frequency_of_letter - lttr_frqncy[letter]) ** 2 / standard_frequency_of_letter
+
+    return math.sqrt(sum_distance)
+
+
+def calculate_letter_frequency(decoded_bytes: bytes) -> list:
+    letter_frequency = create_list_zeros(LETTERS_IN_ALPHABET)
+    for j in range(LETTERS_IN_ALPHABET):
+        letter_frequency[j] = decoded_bytes.count(bytes(chr(65 + j), 'ASCII'))
+        letter_frequency[j] += decoded_bytes.count(bytes(chr(97 + j), 'ASCII'))
+
+    sum_letters = sum(letter_frequency)
+    if sum_letters != 0:
+        letter_frequency = [absolute / sum_letters * 100 for absolute in letter_frequency]
+
+    return letter_frequency
+
+
+def get_euclidian_distance_for_multiple_keys(encoded_string_hex: string, number_of_keys: int = 128):
+    euclidian_distance_key = [0 for _ in range(number_of_keys)]
+
+    for single_char_key in range(0, number_of_keys):
+        bytes_array = xor_bytes_against_single_char(hex_to_bytes(encoded_string_hex), chr(single_char_key))
+        euclidian_distance_key[single_char_key] = euclidian_distance(calculate_letter_frequency(bytes_array))
+
+        print("Key:", single_char_key, ", Distance:", (euclidian_distance_key[single_char_key]))
+
+
 def xor_against_all_chars(encrypted: bytes) -> list[str]:
-    return [(xor_bytes_to_char(encrypted, chr(i))).decode('ascii') for i in range(0, 127)]
+    return [(xor_bytes_to_char(encrypted, chr(i))).decode('ascii') for i in range(0, 128)]
 
 
 def check_for_words(candidates: list[str]):
@@ -34,7 +72,6 @@ def has_word(chars) -> bool:
     except:
         return False
 
-
 if __name__ == '__main__':
     s1 = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
     print_as_base64(hex_to_bytes(s1))
@@ -42,6 +79,20 @@ if __name__ == '__main__':
     s22 = '686974207468652062756c6c277320657965'
     print("{:x}".format(xor(s21, s22)))
     s3 = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
+
+    LETTER_FREQUENCY_STANDARD = {
+        'A': 8.55, 'K': 0.81, 'U': 2.68, 'B': 1.60,
+        'L': 4.21, 'V': 1.06, 'C': 3.16, 'M': 2.53,
+        'W': 1.83, 'D': 3.87, 'N': 7.17, 'X': 0.19,
+        'E': 12.1, 'O': 7.47, 'Y': 1.72, 'F': 2.18,
+        'P': 2.07, 'Z': 0.11, 'G': 2.09, 'Q': 0.10,
+        'H': 4.96, 'R': 6.33, 'I': 7.33, 'S': 6.73,
+        'J': 0.22, 'T': 8.94
+    }
+
+    LETTERS_IN_ALPHABET = 26
+
+    get_euclidian_distance_for_multiple_keys(s3)
     possible_solutions = xor_against_all_chars(hex_to_bytes(s3))
     for solution in check_for_words(possible_solutions):
         print(solution)
