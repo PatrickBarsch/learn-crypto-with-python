@@ -19,8 +19,8 @@ def xor_bytes_against_single_char(our_bytes: bytes, other: chr) -> bytearray:
     return bytearray([(one_byte ^ ord(other)) for one_byte in our_bytes])
 
 
-def create_empty_list(length_list : int) -> list:
-    return [0 for letter in range(length_list)]
+def create_list_zeros(length_list: int) -> list:
+    return [0] * length_list
 
 
 def euclidian_distance(lttr_frqncy: list) -> float:
@@ -32,8 +32,8 @@ def euclidian_distance(lttr_frqncy: list) -> float:
     return np.sqrt(sum_distance)
 
 
-def calculate_letter_frequency(decoded_bytes: bytes) -> list :
-    letter_frequency = create_empty_list(LETTERS_IN_ALPHABET)
+def calculate_letter_frequency(decoded_bytes: bytes) -> list:
+    letter_frequency = create_list_zeros(LETTERS_IN_ALPHABET)
     for j in range(LETTERS_IN_ALPHABET):
         letter_frequency[j] = decoded_bytes.count(bytes(chr(65 + j), 'ASCII'))
         letter_frequency[j] += decoded_bytes.count(bytes(chr(97 + j), 'ASCII'))
@@ -45,9 +45,8 @@ def calculate_letter_frequency(decoded_bytes: bytes) -> list :
     return letter_frequency
 
 
-
-def get_euclidian_distance_for_multiple_keys(encoded_string_hex : string, number_of_keys: int):
-    euclidian_distance_key = [0 for single_char_key in range(number_of_keys)]
+def get_euclidian_distance_for_multiple_keys(encoded_string_hex: string, number_of_keys: int = 128):
+    euclidian_distance_key = [0 for _ in range(number_of_keys)]
 
     for single_char_key in range(0, number_of_keys):
         bytes_array = xor_bytes_against_single_char(hex_to_bytes(encoded_string_hex), chr(single_char_key))
@@ -64,7 +63,6 @@ if __name__ == '__main__':
     print("{:x}".format(xor(s21, s22)))
     s3 = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
 
-
     LETTER_FREQUENCY_STANDARD = {
         'A': 8.55, 'K': 0.81, 'U': 2.68, 'B': 1.60,
         'L': 4.21, 'V': 1.06, 'C': 3.16, 'M': 2.53,
@@ -74,9 +72,7 @@ if __name__ == '__main__':
         'H': 4.96, 'R': 6.33, 'I': 7.33, 'S': 6.73,
         'J': 0.22, 'T': 8.94
     }
-    characters_n_bit = 128
+
     LETTERS_IN_ALPHABET = 26
 
-    get_euclidian_distance_for_multiple_keys(s3, characters_n_bit)
-
-
+    get_euclidian_distance_for_multiple_keys(s3)
