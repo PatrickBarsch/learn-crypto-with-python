@@ -22,7 +22,9 @@ def xor_bytes_against_single_char(our_bytes: bytes, other: chr) -> bytearray:
 def euclidian_distance(lttr_frqncy: list) -> float:
     sum_distance = 0
     for letter in range(len(lttr_frqncy)):
-            sum_distance += (letter_frequency_standard[string.ascii_uppercase[letter]] - lttr_frqncy[letter]) ** 2
+        frequency_standard = letter_frequency_standard[string.ascii_uppercase[letter]]
+        sum_distance += (frequency_standard - lttr_frqncy[letter]) ** 2 / frequency_standard
+
     return np.sqrt(sum_distance)
 
 
@@ -33,6 +35,7 @@ if __name__ == '__main__':
     s22 = '686974207468652062756c6c277320657965'
     print("{:x}".format(xor(s21, s22)))
     s3 = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
+
     euclidian_distance_key = [0 for key in range(127)]
     letter_frequency = [[0 for letter in range(26)] for key in range(127)]
     letter_frequency_standard = {'A': 8.55, 'K': 0.81, 'U': 2.68, 'B': 1.60,
@@ -58,9 +61,8 @@ if __name__ == '__main__':
         else:
             letter_frequency[key] = [0 for i in range(26)]
 
-        # print(chr(i), i,  (xor_bytes_against_single_char(hex_to_bytes(s3), chr(i)))) #.count(bytes(chr(111), 'ASCII')))
-
         euclidian_distance_key[key] = euclidian_distance(letter_frequency[key])
 
         print("Key:", key, ", Distance:", (euclidian_distance_key[key]))
+
 
