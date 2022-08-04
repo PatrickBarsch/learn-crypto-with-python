@@ -82,6 +82,22 @@ def has_word(chars, d) -> bool:
         return False
 
 
+def decrypt_files_with_keys():
+    encrypted_file = r"encrypted.txt"
+    decrypted_file = r"decrypted.txt"
+    with open(encrypted_file, "r") as f:
+        encrypted_lines = f.read().splitlines()
+    decryptions = []
+    for line in encrypted_lines:
+        decryptions += get_euclidian_distance_for_multiple_keys(line)
+    good_guesses = [guess for guess in decryptions if guess["distance"] < 15]
+    with open(decrypted_file, "w") as f:
+        d = enchant.Dict("en_US")
+        for guess in good_guesses:
+            if has_word(guess, d):
+                f.write(str(guess) + "\n")
+
+
 def encrypt_string_repeated_xor(plaintext: string, key: string) -> string:
     bytes_plain = plaintext.encode('utf-8')
 
@@ -128,22 +144,5 @@ if __name__ == '__main__':
     }
 
     LETTERS_IN_ALPHABET = 26
-"""
-    get_euclidian_distance_for_multiple_keys(s3)
-    possible_solutions = xor_against_all_chars(hex_to_bytes(s3))
-    encryptedFile = r"encrypted.txt"
-    decryptedFile = r"decrypted.txt"
-    with open(encryptedFile, "r") as f:
-        encryptedLines = f.read().splitlines()
-    decryptions = []
-    for line in encryptedLines:
-        decryptions += get_euclidian_distance_for_multiple_keys(line)
-    good_guesses = [guess for guess in decryptions if guess["distance"] < 15]
-    with open(decryptedFile, "w") as f:
-        d = enchant.Dict("en_US")
-        for guess in good_guesses:
-            if has_word(guess, d):
-                f.write(str(guess) + "\n")
-"""
-# print(encrypt_string_repeated_xor(s5, key5))
+
 print(hamming_distance("this is a test", "wokka wokka!!!"))
