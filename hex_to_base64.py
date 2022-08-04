@@ -4,6 +4,7 @@ import math
 import enchant
 
 
+
 def hex_to_bytes(input_hex: str) -> bytes:
     return bytes.fromhex(input_hex)
 
@@ -18,6 +19,10 @@ def xor(hex_1: str, hex_2: str) -> hex:
 
 def xor_bytes_to_char(our_bytes: bytes, other: chr) -> bytearray:
     return bytearray([(one_byte ^ ord(other)) for one_byte in our_bytes])
+
+
+def xor_byte_to_char(our_byte: int, other: chr) -> int:
+    return our_byte ^ ord(other)
 
 
 def create_list_zeros(length_list: int) -> list:
@@ -71,6 +76,20 @@ def has_word(chars, d) -> bool:
         return False
 
 
+def encrypt_string_repeated_xor(plaintext: string, key: string) -> string:
+    bytes_plain = plaintext.encode('utf-8')
+
+    list_integers = []
+    for i, b in enumerate(bytes_plain):
+        print("{:08b}".format(b))
+        print("{:08b}".format(xor_byte_to_char(b, key[i % len(key)])))
+        print("{:08b}".format(ord(key[i % len(key)])))
+        print(key[i % len(key)])
+        list_integers.append(xor_byte_to_char(b, key[i % len(key)]))
+
+    return ''.join(format(x, '02x') for x in list_integers)
+
+
 if __name__ == '__main__':
     s1 = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
     print_as_base64(hex_to_bytes(s1))
@@ -78,6 +97,8 @@ if __name__ == '__main__':
     s22 = '686974207468652062756c6c277320657965'
     print("{:x}".format(xor(s21, s22)))
     s3 = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
+    s5 = "Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal"
+    key5 = "ICE"
 
     LETTER_FREQUENCY_STANDARD = {
         'A': 8.55, 'K': 0.81, 'U': 2.68, 'B': 1.60,
@@ -90,7 +111,7 @@ if __name__ == '__main__':
     }
 
     LETTERS_IN_ALPHABET = 26
-
+"""
     get_euclidian_distance_for_multiple_keys(s3)
     possible_solutions = xor_against_all_chars(hex_to_bytes(s3))
     encryptedFile = r"encrypted.txt"
@@ -106,3 +127,5 @@ if __name__ == '__main__':
         for guess in good_guesses:
             if has_word(guess, d):
                 f.write(str(guess) + "\n")
+"""
+print(encrypt_string_repeated_xor(s5, key5))
