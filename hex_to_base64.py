@@ -100,7 +100,7 @@ if __name__ == '__main__':
     decryptions = []
     for line in encryptedLines:
         decryptions += get_euclidian_distance_for_multiple_keys(line)
-    good_guesses = [guess for guess in decryptions if guess["distance"] < 25]
+    good_guesses = [guess for guess in decryptions if guess["distance"] < 15]
     with open(decryptedFile, "w") as f:
         d = enchant.Dict("en_US")
         for guess in good_guesses:
