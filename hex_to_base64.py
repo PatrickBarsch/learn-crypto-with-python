@@ -47,30 +47,29 @@ def calculate_letter_frequency(decoded_bytes: bytes) -> list:
 
 
 def get_euclidian_distance_for_multiple_keys(encoded_string_hex: string, number_of_keys: int = 128):
-    euclidian_distance_key = [0 for _ in range(number_of_keys)]
+    euclidian_distances = [{} for _ in range(number_of_keys)]
 
     for single_char_key in range(0, number_of_keys):
-        bytes_array = xor_bytes_against_single_char(hex_to_bytes(encoded_string_hex), chr(single_char_key))
-        euclidian_distance_key[single_char_key] = euclidian_distance(calculate_letter_frequency(bytes_array))
+        decrypted_bytes_array = xor_bytes_to_char(hex_to_bytes(encoded_string_hex), chr(single_char_key))
+        euclidian_distances[single_char_key]["decrypted"] = decrypted_bytes_array
+        euclidian_distances[single_char_key]["distance"] = euclidian_distance(calculate_letter_frequency(decrypted_bytes_array))
+        euclidian_distances[single_char_key]["encrypted"] = encoded_string_hex
+        euclidian_distances[single_char_key]["key"] = single_char_key
 
-        print("Key:", single_char_key, ", Distance:", (euclidian_distance_key[single_char_key]))
+    return euclidian_distances
 
 
 def xor_against_all_chars(encrypted: bytes) -> list[str]:
     return [(xor_bytes_to_char(encrypted, chr(i))).decode('ascii') for i in range(0, 128)]
 
 
-def check_for_words(candidates: list[str]):
-    return [c for c in candidates if has_word(c)]
-
-
-def has_word(chars) -> bool:
-    d = enchant.Dict("en_US")
-    split_to_words = chars.split(" ")
+def has_word(chars, d) -> bool:
+    split_to_words = str(chars).split(" ")
     try:
         return any((d.check(seq) for seq in split_to_words))
     except:
         return False
+
 
 if __name__ == '__main__':
     s1 = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
@@ -94,5 +93,16 @@ if __name__ == '__main__':
 
     get_euclidian_distance_for_multiple_keys(s3)
     possible_solutions = xor_against_all_chars(hex_to_bytes(s3))
-    for solution in check_for_words(possible_solutions):
-        print(solution)
+    encryptedFile = r"encrypted.txt"
+    decryptedFile = r"decrypted.txt"
+    with open(encryptedFile, "r") as f:
+        encryptedLines = f.read().splitlines()
+    decryptions = []
+    for line in encryptedLines:
+        decryptions += get_euclidian_distance_for_multiple_keys(line)
+    good_guesses = [guess for guess in decryptions if guess["distance"] < 15]
+    with open(decryptedFile, "w") as f:
+        d = enchant.Dict("en_US")
+        for guess in good_guesses:
+            if has_word(guess, d):
+                f.write(str(guess) + "\n")
