@@ -1,6 +1,8 @@
 import base64
 import string
 import math
+from builtins import bytes
+
 import enchant
 
 
@@ -12,12 +14,21 @@ def print_as_base64(stuff: bytes):
     print(base64.b64encode(stuff))
 
 
+def bitstring(str_input: str) -> str:
+    bytes_list_1 = [b for b in str_input.encode('utf-8')]
+    return ''.join(format(x, '08b') for x in bytes_list_1)
+
+
 def xor(hex_1: str, hex_2: str) -> hex:
     return int(hex_1, 16) ^ int(hex_2, 16)
 
 
 def xor_bytes_to_char(our_bytes: bytes, other: chr) -> bytearray:
     return bytearray([(one_byte ^ ord(other)) for one_byte in our_bytes])
+
+
+def xor_byte_to_char(our_byte: int, other: chr) -> int:
+    return our_byte ^ ord(other)
 
 
 def create_list_zeros(length_list: int) -> list:
@@ -49,12 +60,12 @@ def calculate_letter_frequency(decoded_bytes: bytes) -> list:
 def get_euclidian_distance_for_multiple_keys(encoded_string_hex: string, number_of_keys: int = 128):
     euclidian_distances = [{} for _ in range(number_of_keys)]
 
-    for single_char_key in range(0, number_of_keys):
-        decrypted_bytes_array = xor_bytes_to_char(hex_to_bytes(encoded_string_hex), chr(single_char_key))
-        euclidian_distances[single_char_key]["decrypted"] = decrypted_bytes_array
-        euclidian_distances[single_char_key]["distance"] = euclidian_distance(calculate_letter_frequency(decrypted_bytes_array))
-        euclidian_distances[single_char_key]["encrypted"] = encoded_string_hex
-        euclidian_distances[single_char_key]["key"] = single_char_key
+    for key in range(0, number_of_keys):
+        decrypted_bytes_array = xor_bytes_to_char(hex_to_bytes(encoded_string_hex), chr(key))
+        euclidian_distances[key]["decrypted"] = decrypted_bytes_array
+        euclidian_distances[key]["distance"] = euclidian_distance(calculate_letter_frequency(decrypted_bytes_array))
+        euclidian_distances[key]["encrypted"] = encoded_string_hex
+        euclidian_distances[key]["key"] = key
 
     return euclidian_distances
 
@@ -71,13 +82,40 @@ def has_word(chars, d) -> bool:
         return False
 
 
+def encrypt_string_repeated_xor(plaintext: string, key: string) -> string:
+    bytes_plain = plaintext.encode('utf-8')
+
+    list_integers = []
+    for i, b in enumerate(bytes_plain):
+        print("{:08b}".format(b))
+        print("{:08b}".format(xor_byte_to_char(b, key[i % len(key)])))
+        print("{:08b}".format(ord(key[i % len(key)])))
+        print(key[i % len(key)])
+        list_integers.append(xor_byte_to_char(b, key[i % len(key)]))
+
+    return ''.join(format(x, '02x') for x in list_integers)
+
+
+def hamming_distance(str1: str, str2: str) -> int:
+
+    str_bit_1 = bitstring(str1)
+    str_bit_2 = bitstring(str2)
+
+    count = 0
+    for i in range(len(str_bit_1)):
+        if str_bit_1[i] != str_bit_2[i]:
+            count += 1
+    return count
+  
+
 if __name__ == '__main__':
     s1 = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
-    print_as_base64(hex_to_bytes(s1))
     s21 = '1c0111001f010100061a024b53535009181c'
     s22 = '686974207468652062756c6c277320657965'
-    print("{:x}".format(xor(s21, s22)))
     s3 = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
+    s5 = "Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal"
+    key5 = "ICE"
+    s6 = ''
 
     LETTER_FREQUENCY_STANDARD = {
         'A': 8.55, 'K': 0.81, 'U': 2.68, 'B': 1.60,
@@ -90,7 +128,7 @@ if __name__ == '__main__':
     }
 
     LETTERS_IN_ALPHABET = 26
-
+"""
     get_euclidian_distance_for_multiple_keys(s3)
     possible_solutions = xor_against_all_chars(hex_to_bytes(s3))
     encryptedFile = r"encrypted.txt"
@@ -106,3 +144,6 @@ if __name__ == '__main__':
         for guess in good_guesses:
             if has_word(guess, d):
                 f.write(str(guess) + "\n")
+"""
+# print(encrypt_string_repeated_xor(s5, key5))
+print(hamming_distance("this is a test", "wokka wokka!!!"))
