@@ -113,7 +113,6 @@ def encrypt_string_repeated_xor(plaintext: string, key: string) -> string:
 
 
 def hamming_distance(str1: str, str2: str) -> int:
-
     str_bit_1 = bitstring(str1)
     str_bit_2 = bitstring(str2)
 
@@ -122,7 +121,22 @@ def hamming_distance(str1: str, str2: str) -> int:
         if str_bit_1[i] != str_bit_2[i]:
             count += 1
     return count
-  
+
+
+def guess_keysize(cypher: str) -> int:
+    hamming_distances = {
+        hamming_distance(cypher[0:i], cypher[i:2 * i]) / i: i
+        for i in range(2, 41)
+    }
+    return hamming_distances[min(hamming_distances)]
+
+
+def read_file_wo_linebreaks(filename: str):
+    with open(filename, "r") as f:
+        encrypted_lines = f.readlines()
+    encrypted_without_linebreaks = [line.rstrip() for line in encrypted_lines]
+    return "".join(encrypted_without_linebreaks)
+
 
 if __name__ == '__main__':
     s1 = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
@@ -145,4 +159,7 @@ if __name__ == '__main__':
 
     LETTERS_IN_ALPHABET = 26
 
+
 print(hamming_distance("this is a test", "wokka wokka!!!"))
+encrypted = read_file_wo_linebreaks(r"task6_encrypted.txt")
+print(guess_keysize(encrypted))
