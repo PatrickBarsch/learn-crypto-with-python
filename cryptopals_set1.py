@@ -132,7 +132,11 @@ def hamming_distance(str1: str, str2: str) -> int:
 
 def guess_keysize(cypher: str) -> int:
     hamming_distances = {
-        hamming_distance(cypher[0:i], cypher[i:2 * i]) / i: i
+        (hamming_distance(cypher[0:i], cypher[i: 2 * i])
+         + hamming_distance(cypher[2 * i: 3 * i], cypher[3 * i:4 * i])
+         + hamming_distance(cypher[4 * i: 5 * i], cypher[5 * i:6 * i])
+         + hamming_distance(cypher[6 * i: 7 * i], cypher[7 * i:8 * i])
+         ) / (i * 4): i
         for i in range(2, 41)
     }
     return hamming_distances[min(hamming_distances)]
@@ -175,11 +179,19 @@ if __name__ == '__main__':
 
     LETTERS_IN_ALPHABET = 26
 
-
 print(hamming_distance("this is a test", "wokka wokka!!!"))
 encrypted = read_file_wo_linebreaks(r"task6_encrypted.txt")
 print(guess_keysize(encrypted))
-hex_blocks = get_key_size_blocks_hex(encrypted, guess_keysize(encrypted))
 
-for b in hex_blocks:
-    print(get_euclidian_distance_for_multiple_keys(b))
+d = enchant.Dict("en_US")
+for i in range(2, 41):
+    hex_blocks = get_key_size_blocks_hex(encrypted, i)
+
+    solutions = [get_key_with_minimum_distance(b) for b in hex_blocks]
+    solution_string_block = [""] * i
+
+    for i, block in enumerate(hex_blocks):
+        solution_string_block[i] = xor_bytes_to_char(hex_to_bytes(block), chr(solutions[i]))
+
+    # print(list(zip([d.decode('utf-8') for d in solution_string_block])))
+
