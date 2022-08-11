@@ -71,6 +71,12 @@ def get_euclidian_distance_for_multiple_keys(encoded_string_hex: string, number_
     return euclidian_distances
 
 
+def get_key_with_minimum_distance(encoded_string_hex: string) -> int:
+    ed = get_euclidian_distance_for_multiple_keys(encoded_string_hex)
+    minimum_key_solution = min(ed, key=lambda x: x["distance"])
+    return minimum_key_solution["key"]
+
+
 def xor_against_all_chars(encrypted: bytes) -> list[str]:
     return [(xor_bytes_to_char(encrypted, chr(i))).decode('ascii') for i in range(0, 128)]
 
