@@ -2,6 +2,7 @@ import base64
 import string
 import math
 from builtins import bytes
+from typing import List
 
 import enchant
 
@@ -138,6 +139,15 @@ def read_file_wo_linebreaks(filename: str):
     return "".join(encrypted_without_linebreaks)
 
 
+def get_key_size_blocks_hex(cipher: str, keysize: int) -> List[str]:
+    blocks = [""] * keysize
+    for i, c in enumerate(cipher):
+        blocks[i % keysize] += c
+
+    blocks = list(map(lambda block: block.encode('UTF-8').hex(), blocks))
+    return blocks
+
+
 if __name__ == '__main__':
     s1 = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
     s21 = '1c0111001f010100061a024b53535009181c'
@@ -163,3 +173,7 @@ if __name__ == '__main__':
 print(hamming_distance("this is a test", "wokka wokka!!!"))
 encrypted = read_file_wo_linebreaks(r"task6_encrypted.txt")
 print(guess_keysize(encrypted))
+hex_blocks = get_key_size_blocks_hex(encrypted, guess_keysize(encrypted))
+
+for b in hex_blocks:
+    print(get_euclidian_distance_for_multiple_keys(b))
