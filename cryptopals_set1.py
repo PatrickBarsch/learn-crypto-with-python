@@ -37,11 +37,6 @@ def bytes_to_base64(stuff: bytes) -> bytes:
     return base64.b64encode(stuff)
 
 
-def bitstring(str_input: str) -> str:
-    bytes_list_1 = [b for b in str_input.encode('utf-8')]
-    return ''.join(format(x, '08b') for x in bytes_list_1)
-
-
 def xor(hex_1: str, hex_2: str) -> hex:
     """
     xor two hex inputs against one another.
@@ -60,6 +55,27 @@ def xor(hex_1: str, hex_2: str) -> hex:
     return int(hex_1, 16) ^ int(hex_2, 16)
 
 
+def single_byte_xor(encrypted: str):
+    r"""
+    :param encrypted:
+    :return:
+
+    >>> single_byte_xor('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736')
+    bytearray(b"Cooking MC\'s like a pound of bacon")
+    """
+    all_decrypted: List[bytearray] = xor_against_all_chars(hex_to_bytes(encrypted))
+    letter_frequencies: List[List[float]] = [get_letter_frequency(d) for d in all_decrypted]
+    euclidian_distances: List[float] = [euclidian_distance(f) for f in letter_frequencies]
+    dictionary = enchant.Dict("en_US")
+    for i in range(0, len(all_decrypted)):
+        if euclidian_distances[i] < 15 and has_word(all_decrypted[i], dictionary):
+            return all_decrypted[i]
+
+
+def xor_against_all_chars(encrypted: bytes) -> List[bytearray]:
+    return [(xor_bytes_to_char(encrypted, chr(i))) for i in range(0, 128)]
+
+
 def xor_bytes_to_char(our_bytes: bytes, other: chr) -> bytearray:
     return bytearray([(one_byte ^ ord(other)) for one_byte in our_bytes])
 
@@ -68,20 +84,7 @@ def xor_byte_to_char(our_byte: int, other: chr) -> int:
     return our_byte ^ ord(other)
 
 
-def create_list_zeros(length_list: int) -> list:
-    return [0] * length_list
-
-
-def euclidian_distance(lttr_frqncy: list) -> float:
-    sum_distance = 0
-    for letter in range(len(lttr_frqncy)):
-        standard_frequency_of_letter = LETTER_FREQUENCY_STANDARD[string.ascii_uppercase[letter]]
-        sum_distance += (standard_frequency_of_letter - lttr_frqncy[letter]) ** 2 / standard_frequency_of_letter
-
-    return math.sqrt(sum_distance)
-
-
-def calculate_letter_frequency(decoded_bytes: bytes) -> list:
+def get_letter_frequency(decoded_bytes: bytes) -> List[float]:
     letter_frequency = create_list_zeros(LETTERS_IN_ALPHABET)
     for j in range(LETTERS_IN_ALPHABET):
         letter_frequency[j] = decoded_bytes.count(bytes(chr(65 + j), 'ASCII'))
@@ -94,13 +97,31 @@ def calculate_letter_frequency(decoded_bytes: bytes) -> list:
     return letter_frequency
 
 
+def euclidian_distance(lttr_frqncy: list) -> float:
+    sum_distance = 0
+    for letter in range(len(lttr_frqncy)):
+        standard_frequency_of_letter = LETTER_FREQUENCY_STANDARD[string.ascii_uppercase[letter]]
+        sum_distance += (standard_frequency_of_letter - lttr_frqncy[letter]) ** 2 / standard_frequency_of_letter
+
+    return math.sqrt(sum_distance)
+
+
+def bitstring(str_input: str) -> str:
+    bytes_list_1 = [b for b in str_input.encode('utf-8')]
+    return ''.join(format(x, '08b') for x in bytes_list_1)
+
+
+def create_list_zeros(length_list: int) -> list:
+    return [0] * length_list
+
+
 def get_euclidian_distance_for_multiple_keys(encoded_string_hex: string, number_of_keys: int = 128):
     euclidian_distances = [{} for _ in range(number_of_keys)]
 
     for key in range(0, number_of_keys):
         decrypted_bytes_array = xor_bytes_to_char(hex_to_bytes(encoded_string_hex), chr(key))
         euclidian_distances[key]["decrypted"] = decrypted_bytes_array
-        euclidian_distances[key]["distance"] = euclidian_distance(calculate_letter_frequency(decrypted_bytes_array))
+        euclidian_distances[key]["distance"] = euclidian_distance(get_letter_frequency(decrypted_bytes_array))
         euclidian_distances[key]["encrypted"] = encoded_string_hex
         euclidian_distances[key]["key"] = key
 
@@ -113,11 +134,7 @@ def get_key_with_minimum_distance(encoded_string_hex: string) -> int:
     return minimum_key_solution["key"]
 
 
-def xor_against_all_chars(encrypted: bytes) -> list[str]:
-    return [(xor_bytes_to_char(encrypted, chr(i))).decode('ascii') for i in range(0, 128)]
-
-
-def has_word(chars, d) -> bool:
+def has_word(chars: bytes, d: enchant.Dict) -> bool:
     split_to_words = str(chars).split(" ")
     try:
         return any((d.check(seq) for seq in split_to_words))
@@ -196,10 +213,9 @@ def get_key_size_blocks_hex(cipher: str, keysize: int) -> List[str]:
 
 if __name__ == '__main__':
     import doctest
+
     doctest.testmod()
 
-
-#     s3 = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
 #     s5 = "Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal"
 #     key5 = "ICE"
 #     s6 = ''
@@ -219,5 +235,4 @@ if __name__ == '__main__':
 #     for i, block in enumerate(hex_blocks):
 #         solution_string_block[i] = xor_bytes_to_char(hex_to_bytes(block), chr(solutions[i]))
 
-    # print(list(zip([d.decode('utf-8') for d in solution_string_block])))
-
+# print(list(zip([d.decode('utf-8') for d in solution_string_block])))
