@@ -19,21 +19,21 @@ LETTER_FREQUENCY_STANDARD = {
 LETTERS_IN_ALPHABET = 26
 
 
-def check_task_1(unencoded: str):
+def convert_hex_to_base_64(unencoded: str):
     """
     Return a hex-string in base64 encoding.
 
-    >>> check_task_1("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
+    >>> convert_hex_to_base_64("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
     b'SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t'
     """
-    return to_base64(hex_to_bytes(unencoded))
+    return bytes_to_base64(hex_to_bytes(unencoded))
 
 
 def hex_to_bytes(input_hex: str) -> bytes:
     return bytes.fromhex(input_hex)
 
 
-def to_base64(stuff: bytes) -> bytes:
+def bytes_to_base64(stuff: bytes) -> bytes:
     return base64.b64encode(stuff)
 
 
@@ -43,6 +43,20 @@ def bitstring(str_input: str) -> str:
 
 
 def xor(hex_1: str, hex_2: str) -> hex:
+    """
+    xor two hex inputs against one another.
+
+    :param hex_1:
+    :param hex_2:
+    :return: xor of inputs
+
+    >>> xor('1c0111001f010100061a024b53535009181c', '686974207468652062756c6c277320657965')
+    10140548954603607733141837726260044841640313
+
+    Expected test result in hex representation:
+    '0x746865206b696420646f6e277420706c6179'
+    """
+
     return int(hex_1, 16) ^ int(hex_2, 16)
 
 
@@ -184,8 +198,7 @@ if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-#     s21 = '1c0111001f010100061a024b53535009181c'
-#     s22 = '686974207468652062756c6c277320657965'
+
 #     s3 = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
 #     s5 = "Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal"
 #     key5 = "ICE"
