@@ -6,13 +6,35 @@ from typing import List
 
 import enchant
 
+LETTER_FREQUENCY_STANDARD = {
+    'A': 8.55, 'K': 0.81, 'U': 2.68, 'B': 1.60,
+    'L': 4.21, 'V': 1.06, 'C': 3.16, 'M': 2.53,
+    'W': 1.83, 'D': 3.87, 'N': 7.17, 'X': 0.19,
+    'E': 12.1, 'O': 7.47, 'Y': 1.72, 'F': 2.18,
+    'P': 2.07, 'Z': 0.11, 'G': 2.09, 'Q': 0.10,
+    'H': 4.96, 'R': 6.33, 'I': 7.33, 'S': 6.73,
+    'J': 0.22, 'T': 8.94
+}
+
+LETTERS_IN_ALPHABET = 26
+
+
+def check_task_1(unencoded: str):
+    """
+    Return a hex-string in base64 encoding.
+
+    >>> check_task_1("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d")
+    b'SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t'
+    """
+    return to_base64(hex_to_bytes(unencoded))
+
 
 def hex_to_bytes(input_hex: str) -> bytes:
     return bytes.fromhex(input_hex)
 
 
-def print_as_base64(stuff: bytes):
-    print(base64.b64encode(stuff))
+def to_base64(stuff: bytes) -> bytes:
+    return base64.b64encode(stuff)
 
 
 def bitstring(str_input: str) -> str:
@@ -159,39 +181,30 @@ def get_key_size_blocks_hex(cipher: str, keysize: int) -> List[str]:
 
 
 if __name__ == '__main__':
-    s1 = '49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d'
-    s21 = '1c0111001f010100061a024b53535009181c'
-    s22 = '686974207468652062756c6c277320657965'
-    s3 = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
-    s5 = "Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal"
-    key5 = "ICE"
-    s6 = ''
+    import doctest
+    doctest.testmod()
 
-    LETTER_FREQUENCY_STANDARD = {
-        'A': 8.55, 'K': 0.81, 'U': 2.68, 'B': 1.60,
-        'L': 4.21, 'V': 1.06, 'C': 3.16, 'M': 2.53,
-        'W': 1.83, 'D': 3.87, 'N': 7.17, 'X': 0.19,
-        'E': 12.1, 'O': 7.47, 'Y': 1.72, 'F': 2.18,
-        'P': 2.07, 'Z': 0.11, 'G': 2.09, 'Q': 0.10,
-        'H': 4.96, 'R': 6.33, 'I': 7.33, 'S': 6.73,
-        'J': 0.22, 'T': 8.94
-    }
-
-    LETTERS_IN_ALPHABET = 26
-
-print(hamming_distance("this is a test", "wokka wokka!!!"))
-encrypted = read_file_wo_linebreaks(r"task6_encrypted.txt")
-print(guess_keysize(encrypted))
-
-d = enchant.Dict("en_US")
-for i in range(2, 41):
-    hex_blocks = get_key_size_blocks_hex(encrypted, i)
-
-    solutions = [get_key_with_minimum_distance(b) for b in hex_blocks]
-    solution_string_block = [""] * i
-
-    for i, block in enumerate(hex_blocks):
-        solution_string_block[i] = xor_bytes_to_char(hex_to_bytes(block), chr(solutions[i]))
+#     s21 = '1c0111001f010100061a024b53535009181c'
+#     s22 = '686974207468652062756c6c277320657965'
+#     s3 = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
+#     s5 = "Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal"
+#     key5 = "ICE"
+#     s6 = ''
+#
+#
+# print(hamming_distance("this is a test", "wokka wokka!!!"))
+# encrypted = read_file_wo_linebreaks(r"task6_encrypted.txt")
+# print(guess_keysize(encrypted))
+#
+# d = enchant.Dict("en_US")
+# for i in range(2, 41):
+#     hex_blocks = get_key_size_blocks_hex(encrypted, i)
+#
+#     solutions = [get_key_with_minimum_distance(b) for b in hex_blocks]
+#     solution_string_block = [""] * i
+#
+#     for i, block in enumerate(hex_blocks):
+#         solution_string_block[i] = xor_bytes_to_char(hex_to_bytes(block), chr(solutions[i]))
 
     # print(list(zip([d.decode('utf-8') for d in solution_string_block])))
 
