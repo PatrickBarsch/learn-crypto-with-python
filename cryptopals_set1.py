@@ -169,15 +169,21 @@ def decrypt_files_with_keys(encrypted_file: str) -> list[dict]:
 
 
 def encrypt_string_repeated_xor(plaintext: string, key: string) -> string:
+    r"""
+    read string from file and encrypt it with the key
+
+    :param plaintext:
+    :param key:
+    :return: decrypted string
+
+    >>> encrypt_string_repeated_xor("Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal", 'ICE')
+    '0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f'
+    """
+
     bytes_plain = plaintext.encode('utf-8')
 
-    list_integers = []
-    for i, b in enumerate(bytes_plain):
-        print("{:08b}".format(b))
-        print("{:08b}".format(xor_byte_to_char(b, key[i % len(key)])))
-        print("{:08b}".format(ord(key[i % len(key)])))
-        print(key[i % len(key)])
-        list_integers.append(xor_byte_to_char(b, key[i % len(key)]))
+    list_integers = [xor_byte_to_char(b, key[i % len(key)])
+                     for i, b in enumerate(bytes_plain)]
 
     return ''.join(format(x, '02x') for x in list_integers)
 
