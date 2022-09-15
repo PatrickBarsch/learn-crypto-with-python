@@ -142,20 +142,30 @@ def has_word(chars: bytes, d: enchant.Dict) -> bool:
         return False
 
 
-def decrypt_files_with_keys():
-    encrypted_file = r"encrypted.txt"
-    decrypted_file = r"decrypted.txt"
+def decrypt_files_with_keys(encrypted_file: str) -> list[dict]:
+    r"""
+    read strings from file and decrypt them vs a single char
+    only one of them should yield a reasonable output
+
+    :param encrypted_file:
+    :return: list of dicts, each dict containing decrypted string of the encrypted string with best critera:
+    - small euclidian distance
+    - contains real word
+
+    >>> decrypt_files_with_keys('encrypted.txt')
+    [{'decrypted': bytearray(b'Now that the party is jumping\n'), 'distance': 11.624746634464799, 'encrypted': '7b5a4215415d544115415d5015455447414c155c46155f4058455c5b523f', 'key': 53}]
+    """
+
     with open(encrypted_file, "r") as f:
         encrypted_lines = f.read().splitlines()
     decryptions = []
     for line in encrypted_lines:
         decryptions += get_euclidian_distance_for_multiple_keys(line)
     good_guesses = [guess for guess in decryptions if guess["distance"] < 15]
-    with open(decrypted_file, "w") as f:
-        d = enchant.Dict("en_US")
-        for guess in good_guesses:
-            if has_word(guess, d):
-                f.write(str(guess) + "\n")
+
+    d = enchant.Dict("en_US")
+
+    return [guess for guess in good_guesses if has_word(guess, d)]
 
 
 def encrypt_string_repeated_xor(plaintext: string, key: string) -> string:
