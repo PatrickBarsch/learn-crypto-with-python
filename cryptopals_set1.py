@@ -189,6 +189,16 @@ def encrypt_string_repeated_xor(plaintext: string, key: string) -> string:
 
 
 def hamming_distance(str1: str, str2: str) -> int:
+    r"""
+
+    :param str1:
+    :param str2:
+    :return: hamming distance of the strings as integer
+
+    >>> hamming_distance("this is a test", "wokka wokka!!!")
+    37
+    """
+
     str_bit_1 = bitstring(str1)
     str_bit_2 = bitstring(str2)
 
