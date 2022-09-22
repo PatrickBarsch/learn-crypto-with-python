@@ -5,6 +5,7 @@ from builtins import bytes
 from typing import List
 
 import enchant
+from itertools import product
 
 LETTER_FREQUENCY_STANDARD = {
     'A': 8.55, 'K': 0.81, 'U': 2.68, 'B': 1.60,
@@ -115,23 +116,23 @@ def create_list_zeros(length_list: int) -> list:
     return [0] * length_list
 
 
-def get_euclidian_distance_for_multiple_keys(encoded_string_hex: string, number_of_keys: int = 128):
-    euclidian_distances = [{} for _ in range(number_of_keys)]
+def get_closest_chars(encoded_string_hex: string, how_many: int, number_of_chars: int = 128) -> list[int]:
+    euclidian_distances = create_list_zeros(number_of_chars - 32)
 
-    for key in range(0, number_of_keys):
-        decrypted_bytes_array = xor_bytes_to_char(hex_to_bytes(encoded_string_hex), chr(key))
-        euclidian_distances[key]["decrypted"] = decrypted_bytes_array
-        euclidian_distances[key]["distance"] = euclidian_distance(get_letter_frequency(decrypted_bytes_array))
-        euclidian_distances[key]["encrypted"] = encoded_string_hex
-        euclidian_distances[key]["key"] = key
+    # ascii 0-31 (special codes and other strange things :-)) does not seem to be part of key
+    for char in range(32, number_of_chars):
+        decrypted_bytes_array = xor_bytes_to_char(hex_to_bytes(encoded_string_hex), chr(char))
+        euclidian_distances[char - 32] = (euclidian_distance(get_letter_frequency(decrypted_bytes_array)), char)
 
-    return euclidian_distances
+    euclidian_distances.sort(key=lambda x: x[0])
+    return [x[1] for x in euclidian_distances[:how_many]]
 
 
-def get_key_with_minimum_distance(encoded_string_hex: string) -> int:
-    ed = get_euclidian_distance_for_multiple_keys(encoded_string_hex)
-    minimum_key_solution = min(ed, key=lambda x: x["distance"])
-    return minimum_key_solution["key"]
+def get_key_with_minimum_distance(encoded_string_hex: string, how_many: int) -> list[int]:
+    ed = get_closest_chars(encoded_string_hex, how_many)
+    ed.sort(key=lambda x: x["distance"])
+
+    return [d["distance"] for d in ed[:how_many]]
 
 
 def has_word(chars: bytes, d: enchant.Dict) -> bool:
@@ -160,7 +161,7 @@ def decrypt_files_with_keys(encrypted_file: str) -> list[dict]:
         encrypted_lines = f.read().splitlines()
     decryptions = []
     for line in encrypted_lines:
-        decryptions += get_euclidian_distance_for_multiple_keys(line)
+        decryptions += get_closest_chars(line, 5)
     good_guesses = [guess for guess in decryptions if guess["distance"] < 15]
 
     d = enchant.Dict("en_US")
@@ -209,7 +210,7 @@ def hamming_distance(str1: str, str2: str) -> int:
     return count
 
 
-def guess_keysize(cypher: str) -> int:
+def guess_keysize(cypher: str, how_many: int) -> list[int]:
     hamming_distances = {
         (hamming_distance(cypher[0:i], cypher[i: 2 * i])
          + hamming_distance(cypher[2 * i: 3 * i], cypher[3 * i:4 * i])
@@ -218,7 +219,8 @@ def guess_keysize(cypher: str) -> int:
          ) / (i * 4): i
         for i in range(2, 41)
     }
-    return hamming_distances[min(hamming_distances)]
+    best_distances = sorted(hamming_distances.keys())[:how_many]
+    return [hamming_distances[d] for d in best_distances]
 
 
 def read_file_wo_linebreaks(filename: str):
@@ -228,7 +230,7 @@ def read_file_wo_linebreaks(filename: str):
     return "".join(encrypted_without_linebreaks)
 
 
-def get_key_size_blocks_hex(cipher: str, keysize: int) -> List[str]:
+def get_key_sized_blocks_in_hex(cipher: str, keysize: int) -> List[str]:
     blocks = [""] * keysize
     for i, c in enumerate(cipher):
         blocks[i % keysize] += c
@@ -240,25 +242,38 @@ def get_key_size_blocks_hex(cipher: str, keysize: int) -> List[str]:
 if __name__ == '__main__':
     import doctest
 
-    doctest.testmod()
+    # doctest.testmod()
 
-#     s5 = "Burning 'em, if you ain't quick and nimble I go crazy when I hear a cymbal"
-#     key5 = "ICE"
-#     s6 = ''
-#
-#
-# print(hamming_distance("this is a test", "wokka wokka!!!"))
-# encrypted = read_file_wo_linebreaks(r"task6_encrypted.txt")
-# print(guess_keysize(encrypted))
-#
-# d = enchant.Dict("en_US")
-# for i in range(2, 41):
-#     hex_blocks = get_key_size_blocks_hex(encrypted, i)
-#
-#     solutions = [get_key_with_minimum_distance(b) for b in hex_blocks]
-#     solution_string_block = [""] * i
-#
-#     for i, block in enumerate(hex_blocks):
-#         solution_string_block[i] = xor_bytes_to_char(hex_to_bytes(block), chr(solutions[i]))
+encrypted = read_file_wo_linebreaks(r"task6_encrypted.txt")
 
-# print(list(zip([d.decode('utf-8') for d in solution_string_block])))
+# select the 5 keysizes with the lowest average hamming distance
+# for each selected keysize:
+for ks in guess_keysize(encrypted, 5):
+
+    # slice in blocks
+    key_sized_blocks = get_key_sized_blocks_in_hex(encrypted, ks)
+
+    good_block_chars: list[list[int]] \
+        = [get_closest_chars(b, 5)
+           for b in key_sized_blocks
+           ]
+    print("B")
+    # get all combinations of chars in blocks
+    good_block_char_combo: list[tuple[int]] = list(product(*good_block_chars))
+
+    # decrypt each block+char tuple
+    for combo_tuple in good_block_char_combo:
+
+        decrypted_blocks = []
+        for i, char in enumerate(combo_tuple):
+            decrypted_blocks += xor_bytes_to_char(hex_to_bytes(key_sized_blocks[i]), char)
+
+        # reassemble the original block
+        print("A")
+        print(list(zip([decrypted_blocks.decode('utf-8')])))
+
+    # decrypt each block with the y chars
+
+    # reorder the bytes from the block to the original order
+
+    # print results
