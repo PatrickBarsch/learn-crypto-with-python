@@ -6,6 +6,7 @@ from typing import List
 
 import enchant
 from itertools import product
+import itertools
 
 LETTER_FREQUENCY_STANDARD = {
     'A': 8.55, 'K': 0.81, 'U': 2.68, 'B': 1.60,
@@ -99,6 +100,7 @@ def get_letter_frequency(decoded_bytes: bytes) -> List[float]:
 
 
 def euclidian_distance(lttr_frqncy: list) -> float:
+    if(sum(lttr_frqncy)) == 0: return 9999
     sum_distance = 0
     for letter in range(len(lttr_frqncy)):
         standard_frequency_of_letter = LETTER_FREQUENCY_STANDARD[string.ascii_uppercase[letter]]
@@ -248,16 +250,15 @@ encrypted = read_file_wo_linebreaks(r"task6_encrypted.txt")
 
 # select the 5 keysizes with the lowest average hamming distance
 # for each selected keysize:
-for ks in guess_keysize(encrypted, 5):
+for ks in guess_keysize(encrypted, 1):
 
     # slice in blocks
     key_sized_blocks = get_key_sized_blocks_in_hex(encrypted, ks)
 
     good_block_chars: list[list[int]] \
-        = [get_closest_chars(b, 5)
+        = [get_closest_chars(b, 1)
            for b in key_sized_blocks
            ]
-    print("B")
     # get all combinations of chars in blocks
     good_block_char_combo: list[tuple[int]] = list(product(*good_block_chars))
 
@@ -265,15 +266,9 @@ for ks in guess_keysize(encrypted, 5):
     for combo_tuple in good_block_char_combo:
 
         decrypted_blocks = []
-        for i, char in enumerate(combo_tuple):
-            decrypted_blocks += xor_bytes_to_char(hex_to_bytes(key_sized_blocks[i]), char)
+        for i, num in enumerate(combo_tuple):
+            decrypted_blocks += xor_bytes_to_char(hex_to_bytes(key_sized_blocks[i]), chr(num))
 
         # reassemble the original block
-        print("A")
-        print(list(zip([decrypted_blocks.decode('utf-8')])))
-
-    # decrypt each block with the y chars
-
-    # reorder the bytes from the block to the original order
-
-    # print results
+        print([chr(c) for c in itertools.chain.from_iterable(zip(decrypted_blocks))])
+        print("".join([chr(c) for c in itertools.chain.from_iterable(zip(decrypted_blocks))]))
