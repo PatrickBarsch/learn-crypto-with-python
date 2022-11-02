@@ -226,6 +226,7 @@ def guess_keysize(cypher: str, how_many: int) -> list[int]:
 
 
 def read_file_wo_linebreaks(filename: str):
+    # TODO: some sort of BASE64 Decryption here
     with open(filename, "r") as f:
         encrypted_lines = f.readlines()
     encrypted_without_linebreaks = [line.rstrip() for line in encrypted_lines]
@@ -237,6 +238,7 @@ def get_key_sized_blocks_in_hex(cipher: str, keysize: int) -> List[str]:
     for i, c in enumerate(cipher):
         blocks[i % keysize] += c
 
+    # TODO: some sort of BASE64 Decryption here
     blocks = list(map(lambda block: block.encode('UTF-8').hex(), blocks))
     return blocks
 
@@ -267,8 +269,12 @@ for ks in guess_keysize(encrypted, 1):
 
         decrypted_blocks = []
         for i, num in enumerate(combo_tuple):
-            decrypted_blocks += xor_bytes_to_char(hex_to_bytes(key_sized_blocks[i]), chr(num))
+            decrypted_blocks.append(xor_bytes_to_char(hex_to_bytes(key_sized_blocks[i]), chr(num)))
 
+        reassemble = []
         # reassemble the original block
-        print([chr(c) for c in itertools.chain.from_iterable(zip(decrypted_blocks))])
-        print("".join([chr(c) for c in itertools.chain.from_iterable(zip(decrypted_blocks))]))
+        for k, byte in enumerate(decrypted_blocks[-1]):
+            for block in decrypted_blocks:
+                reassemble += chr(block[k])
+
+        print(reassemble)
