@@ -225,12 +225,11 @@ def guess_keysize(cypher: str, how_many: int) -> list[int]:
     return [hamming_distances[d] for d in best_distances]
 
 
-def read_file_wo_linebreaks(filename: str):
-    # TODO: some sort of BASE64 Decryption here
+def read_file_wo_linebreaks(filename: str) -> str:
     with open(filename, "r") as f:
         encrypted_lines = f.readlines()
     encrypted_without_linebreaks = [line.rstrip() for line in encrypted_lines]
-    return "".join(encrypted_without_linebreaks)
+    return str(base64.b64decode("".join(encrypted_without_linebreaks)))
 
 
 def get_key_sized_blocks_in_hex(cipher: str, keysize: int) -> List[str]:
@@ -238,7 +237,6 @@ def get_key_sized_blocks_in_hex(cipher: str, keysize: int) -> List[str]:
     for i, c in enumerate(cipher):
         blocks[i % keysize] += c
 
-    # TODO: some sort of BASE64 Decryption here
     blocks = list(map(lambda block: block.encode('UTF-8').hex(), blocks))
     return blocks
 
